@@ -1,0 +1,107 @@
+@import "./amore-mio.css";
+
+button.footer-admin-link {
+  background: none;
+  border: none;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.menu-add-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: var(--r-sm);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold);
+  transition: var(--transition);
+}
+
+.menu-add-btn:hover {
+  background: rgba(184, 150, 62, 0.15);
+  color: var(--gold-light);
+}
+
+.sticky-basket-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  z-index: 850;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--crimson);
+  color: var(--cream);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+  font-family: var(--font-dm-sans), "DM Sans", sans-serif;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sticky-basket-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.32);
+}
+
+.sticky-basket-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.sticky-basket-meta {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.checkout-pay-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.checkout-pay-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--cream);
+  cursor: pointer;
+}
+
+.checkout-pay-option:has(input:checked) {
+  border-color: var(--crimson);
+  background: rgba(176, 48, 47, 0.04);
+}
+
+.checkout-pay-option input {
+  margin-top: 3px;
+  accent-color: var(--crimson);
+}
+
+.checkout-pay-option-title {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text-dark);
+}
+
+.checkout-pay-option-desc {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: 2px;
+  line-height: 1.4;
+}

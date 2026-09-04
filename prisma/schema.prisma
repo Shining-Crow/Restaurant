@@ -1,0 +1,189 @@
+// Prisma schema — Postgres on Supabase (DATABASE_URL).
+// Tables cover menu, bookings, paid orders, enquiries, specials, hours, settings, audit.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Menu (replaces client-only menu when wired to API) ─────────────────────
+
+model MenuItem {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String   @db.Text
+  price       Decimal  @db.Decimal(10, 2)
+  /// Slug: starters | pasta | pizza | chicken | risotto | crespelle | burgers | bread | sides | kids
+  category  String
+  tags      String[] @default([])
+  available Boolean  @default(true)
+  popular   Boolean  @default(false)
+  imageUrl  String?  @map("image_url")
+  extras    String?  @db.Text
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@index([available])
+  @@map("menu_items")
+}
+
+// ─── Chef specials / offers (homepage #specials) ───────────────────────────
+
+model Special {
+  id          BigInt   @id @default(autoincrement())
+  title       String
+  description String   @db.Text
+  price       Decimal  @db.Decimal(10, 2)
+  ribbonLabel String?  @map("ribbon_label")
+  imageUrl    String?  @map("image_url")
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([active, sortOrder])
+  @@map("specials")
+}
+
+// ─── Table bookings (website booking form) ──────────────────────────────────
+
+model Booking {
+  id               BigInt   @id @default(autoincrement())
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  customerName     String   @map("customer_name")
+  customerPhone    String   @map("customer_phone")
+  customerEmail    String?  @map("customer_email")
+  bookingDate      DateTime @map("booking_date") @db.Date
+  bookingTime      String   @map("booking_time")
+  guestCount       String   @map("guest_count")
+  specialRequests  String?  @map("special_requests") @db.Text
+  /// pending | confirmed | cancelled | completed | no_show
+  status String @default("pending")
+
+  @@index([status, bookingDate])
+  @@index([createdAt])
+  @@map("bookings")
+}
+
+// ─── Takeaway enquiries (phone / form follow-up) ────────────────────────────
+
+model OrderEnquiry {
+  id               BigInt   @id @default(autoincrement())
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  customerName     String   @map("customer_name")
+  customerPhone    String   @map("customer_phone")
+  customerEmail    String?  @map("customer_email")
+  orderType        String   @map("order_type")
+  deliveryAddress  String?  @map("delivery_address") @db.Text
+  preferredTime    String?  @map("preferred_time")
+  notes            String?  @db.Text
+  /// new | contacted | converted | closed
+  status String @default("new")
+
+  @@index([status, createdAt])
+  @@map("order_enquiries")
+}
+
+// ─── Paid takeaway orders (Worldpay Hosted Payment Pages) ───────────────────
+
+model Order {
+  id                    BigInt   @id @default(autoincrement())
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  customerName          String   @map("customer_name")
+  customerPhone         String   @map("customer_phone")
+  customerEmail         String?  @map("customer_email")
+  orderType             String   @map("order_type")
+  deliveryAddress       String?  @map("delivery_address") @db.Text
+  preferredTime         String?  @map("preferred_time")
+  items                 Json
+  subtotal              Decimal? @map("subtotal") @db.Decimal(10, 2)
+  deliveryFee           Decimal  @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  total                 Decimal? @map("total") @db.Decimal(10, 2)
+  paymentReference      String?  @unique @map("payment_reference")
+  paymentCrossReference String?  @map("payment_cross_reference")
+  /// pending | paid | awaiting_cash | failed | refunded | void
+  status                String   @default("pending")
+  notes                 String?  @map("notes") @db.Text
+  printJobs             PrintJob[]
+
+  @@index([createdAt])
+  @@index([status])
+  @@map("orders")
+}
+
+// ─── Kitchen cloud printer jobs (SUNMI OpenAPI) ─────────────────────────────
+
+model PrintJob {
+  id               BigInt    @id @default(autoincrement())
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  orderId          BigInt    @map("order_id")
+  paymentReference String    @map("payment_reference")
+  /// Idempotent SUNMI trade_no (ord_… for first release; ord_…_r{n} for reprints)
+  tradeNo          String    @unique @map("trade_no")
+  printerSn        String?   @map("printer_sn")
+  /// pending | submitted | printed | failed | skipped
+  status           String    @default("pending")
+  isReprint        Boolean   @default(false) @map("is_reprint")
+  attemptCount     Int       @default(0) @map("attempt_count")
+  lastAttemptAt    DateTime? @map("last_attempt_at")
+  nextRetryAt      DateTime? @map("next_retry_at")
+  sunmiCode        String?   @map("sunmi_code")
+  sunmiMsg         String?   @map("sunmi_msg") @db.Text
+  lastError        String?   @map("last_error") @db.Text
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([paymentReference])
+  @@index([status, nextRetryAt])
+  @@index([orderId])
+  @@map("print_jobs")
+}
+
+// ─── Opening hours (one row per weekday) ─────────────────────────────────────
+/// weekday: 1 = Monday … 7 = Sunday
+
+model OpeningHour {
+  weekday   Int     @id
+  openTime  String  @map("open_time")
+  closeTime String  @map("close_time")
+  isClosed  Boolean @default(false) @map("is_closed")
+  note      String?
+
+  @@map("opening_hours")
+}
+
+// ─── Key/value site config (announcement bar, fees, copy) ────────────────────
+
+model SiteSetting {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+// ─── Admin / staff audit trail ───────────────────────────────────────────────
+
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  createdAt  DateTime @default(now()) @map("created_at")
+  actor      String?
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  payload    Json?
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}

@@ -1,0 +1,5 @@
+export const MIN_CHECKOUT_AMOUNT_GBP = 0.3;
+
+export const MIN_CHECKOUT_AMOUNT_PENCE = Math.round(
+  MIN_CHECKOUT_AMOUNT_GBP * 100,
+);
