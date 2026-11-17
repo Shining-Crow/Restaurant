@@ -4,11 +4,17 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { AdminPanel } from "@/components/AdminPanel";
 import { MenuSection } from "@/components/MenuSection";
+import { OrderingPausedNotice } from "@/components/OrderingPausedNotice";
 import { StickyBasketButton } from "@/components/StickyBasketButton";
 import { TakeawayCheckout } from "@/components/TakeawayCheckout";
 import { useSiteSettings } from "@/components/SiteSettingsContext";
 import type { OpeningHourDisplay } from "@/lib/opening-hours-shared";
 import { formatOpeningHourSlot, prismaWeekdayFromJsDate } from "@/lib/opening-hours-shared";
+import {
+  ORDERING_PAUSED,
+  ORDERING_PAUSED_MESSAGE,
+  ORDERING_PAUSED_TITLE,
+} from "@/lib/ordering-status";
 import { scrollToSection } from "@/lib/scroll";
 
 function NavLink({
@@ -182,9 +188,11 @@ export function HomePage({ openingHours }: { openingHours: OpeningHourDisplay[] 
               <button
                 type="button"
                 className="btn-gold"
+                disabled={ORDERING_PAUSED}
+                title={ORDERING_PAUSED ? ORDERING_PAUSED_TITLE : undefined}
                 onClick={() => scrollToSection("order")}
               >
-                📦 Order Takeaway
+                {ORDERING_PAUSED ? "🔒 Ordering Paused" : "📦 Order Takeaway"}
               </button>
             </div>
             <div className="hero-trust">
@@ -217,20 +225,28 @@ export function HomePage({ openingHours }: { openingHours: OpeningHourDisplay[] 
         </div>
       </section>
 
-      <div className="announce-bar">
-        <p>
-          {site.announcementBar}{" "}
-          <a
-            href="#order"
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToSection("order");
-            }}
-          >
-            Order now →
-          </a>
-        </p>
-      </div>
+      {ORDERING_PAUSED ? (
+        <div className="announce-bar announce-bar-closed" role="status">
+          <p>
+            <strong>{ORDERING_PAUSED_TITLE}.</strong> {ORDERING_PAUSED_MESSAGE}
+          </p>
+        </div>
+      ) : (
+        <div className="announce-bar">
+          <p>
+            {site.announcementBar}{" "}
+            <a
+              href="#order"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("order");
+              }}
+            >
+              Order now →
+            </a>
+          </p>
+        </div>
+      )}
 
       <div className="info-strip">
         <div className="container info-strip-inner">
@@ -419,19 +435,21 @@ export function HomePage({ openingHours }: { openingHours: OpeningHourDisplay[] 
                   </div>
                 </li>
               </ol>
-              <div className="order-cta-call">
-                <div className="order-cta-call-icon">📞</div>
-                <div className="order-cta-call-text">
-                  <div className="order-cta-call-label">Call to Order Directly</div>
-                  <div className="order-cta-call-num">
-                    <a href={site.phoneTelHref} style={{ color: "inherit" }}>
-                      {site.phone}
-                    </a>
+              {ORDERING_PAUSED ? null : (
+                <div className="order-cta-call">
+                  <div className="order-cta-call-icon">📞</div>
+                  <div className="order-cta-call-text">
+                    <div className="order-cta-call-label">Call to Order Directly</div>
+                    <div className="order-cta-call-num">
+                      <a href={site.phoneTelHref} style={{ color: "inherit" }}>
+                        {site.phone}
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
-            <TakeawayCheckout />
+            {ORDERING_PAUSED ? <OrderingPausedNotice /> : <TakeawayCheckout />}
           </div>
         </div>
       </section>
@@ -524,9 +542,11 @@ export function HomePage({ openingHours }: { openingHours: OpeningHourDisplay[] 
               <button
                 type="button"
                 className="btn-outline"
+                disabled={ORDERING_PAUSED}
+                title={ORDERING_PAUSED ? ORDERING_PAUSED_TITLE : undefined}
                 onClick={() => scrollToSection("order")}
               >
-                Basket &amp; Pay
+                {ORDERING_PAUSED ? "Ordering Paused" : <>Basket &amp; Pay</>}
               </button>
             </div>
           </div>

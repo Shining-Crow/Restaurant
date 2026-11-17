@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/CartContext";
+import { ORDERING_PAUSED } from "@/lib/ordering-status";
 import { scrollToSection } from "@/lib/scroll";
 
 export function StickyBasketButton() {
@@ -25,7 +26,7 @@ export function StickyBasketButton() {
     return () => observer.disconnect();
   }, []);
 
-  if (!lines.length || orderInView) return null;
+  if (ORDERING_PAUSED || !lines.length || orderInView) return null;
 
   return (
     <button

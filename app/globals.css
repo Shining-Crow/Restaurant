@@ -27,6 +27,40 @@ button.footer-admin-link {
   color: var(--gold-light);
 }
 
+/* Temporary closure (lib/ordering-status.ts) */
+.menu-add-btn:disabled,
+.btn-gold:disabled,
+.btn-outline:disabled,
+.form-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.menu-add-btn:disabled:hover {
+  background: transparent;
+  color: var(--gold);
+}
+
+.announce-bar-closed {
+  background: var(--crimson);
+  padding: 16px 20px;
+}
+
+.announce-bar-closed p {
+  font-size: 0.92rem;
+}
+
+.ordering-paused-card {
+  text-align: center;
+}
+
+.ordering-paused-icon {
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+}
+
 .sticky-basket-btn {
   position: fixed;
   right: 20px;

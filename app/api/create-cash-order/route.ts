@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import {
+  ORDERING_PAUSED,
+  ORDERING_PAUSED_MESSAGE,
+} from "@/lib/ordering-status";
 import { getPrisma } from "@/lib/prisma";
 import { defaultDeliveryFee, resolveCheckoutLines } from "@/lib/order-pricing";
 import {
@@ -12,6 +16,10 @@ import { createPaymentBodySchema } from "@/lib/validators/checkout";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  if (ORDERING_PAUSED) {
+    return NextResponse.json({ error: ORDERING_PAUSED_MESSAGE }, { status: 503 });
+  }
+
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
       { error: "Database not configured (missing DATABASE_URL)." },

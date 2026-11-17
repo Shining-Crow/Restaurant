@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { MIN_CHECKOUT_AMOUNT_PENCE } from "@/lib/checkout-constants";
+import {
+  ORDERING_PAUSED,
+  ORDERING_PAUSED_MESSAGE,
+} from "@/lib/ordering-status";
 import { getPrisma } from "@/lib/prisma";
 import { defaultDeliveryFee, resolveCheckoutLines } from "@/lib/order-pricing";
 import { loadSitePublicSettings } from "@/lib/site-settings-data";
@@ -13,6 +17,10 @@ import { createPaymentBodySchema } from "@/lib/validators/checkout";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  if (ORDERING_PAUSED) {
+    return NextResponse.json({ error: ORDERING_PAUSED_MESSAGE }, { status: 503 });
+  }
+
   if (!isWorldpayConfigured()) {
     return NextResponse.json(
       {
